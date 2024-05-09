@@ -34,6 +34,9 @@ export function activate(context: vscode.ExtensionContext) {
 			return { metadata: { command: 'scan' } };
 		} else if (request.command == 'status') {
 			console.log('Getting status of workflow');
+
+
+
 			stream.progress('Getting status of workflow...');
 			// Return status of workflow
 			return { metadata: { command: 'status' } };
@@ -75,7 +78,7 @@ export function activate(context: vscode.ExtensionContext) {
 	// when you type `@`, and can contribute sub-commands in the chat input
 	// that appear when you type `/`.
 	const participant = vscode.chat.createChatParticipant(PARTICIPANT_ID, handler);
-	participant.iconPath = vscode.Uri.joinPath(context.extensionUri, 'deere.jpeg');
+	participant.iconPath = vscode.Uri.joinPath(context.extensionUri, 'icon.jpeg');
 	participant.followupProvider = {
 		provideFollowups(
 			result: AIOpsChatResult,
