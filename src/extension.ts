@@ -1,6 +1,6 @@
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';
-import OpenAI from 'openai';
+import { Octokit } from "@octokit/rest";
 import * as path from 'path';
 import * as vscode from 'vscode';
 // Load environment variables from .env file
@@ -25,8 +25,17 @@ export function activate(context: vscode.ExtensionContext) {
 		token: vscode.CancellationToken
 	): Promise<AIOpsChatResult> => {
 
+		const envs = vscode.workspace.getConfiguration('environments');
+		const GHAPIKey = envs.get('token') as string ?? '';
+		const octokit = new Octokit({
+			auth: GHAPIKey,
+		  });
+		const GHRepo = envs.get('repo') as string ?? '';
+		const GHOrg = envs.get('org') as string ?? '';
+
 		if (request.command == 'scan') {
 			console.log('Running SAST Scan');
+			console.log("STREAM", stream);
 			stream.progress('Kicking off your SAST scan on branch X...');
 			//kickoff SAST scan.
 			// Return status of workflow
@@ -35,8 +44,23 @@ export function activate(context: vscode.ExtensionContext) {
 		} else if (request.command == 'status') {
 			console.log('Getting status of workflow');
 
+			
+			const parts = request.prompt.split(' ');
+			const workflowFileName = parts[0];
+			octokit.actions
+			.listWorkflowRunsForRepo({
+				owner: GHOrg,
+				repo: GHRepo,
+				workflow_id: workflowFileName
+			})
+			.then(({ data }: { data: any }) => {
+				console.log(data);
+			})
+			.catch((err: any) => {
+				console.error(err);
+			});
 
-
+			
 			stream.progress('Getting status of workflow...');
 			// Return status of workflow
 			return { metadata: { command: 'status' } };
