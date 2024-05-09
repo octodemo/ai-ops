@@ -1,0 +1,80 @@
+{
+	"name": "ai-ops",
+	"publisher": "vscode-samples",
+	"displayName": "ai-ops",
+	"description": "Natural language application operations",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/octodemo/ai-ops"
+	},
+	"version": "0.1.0",
+	"engines": {
+		"vscode": "^1.88.0"
+	},
+	"extensionDependencies": [
+		"github.copilot-chat"
+	],
+	"categories": [
+		"Other"
+	],
+	"enabledApiProposals": [
+		"chatParticipant",
+		"chatVariableResolver",
+		"languageModels"
+	],
+	"contributes": {
+		"configuration": {
+			"title": "Environments",
+			"properties": {
+				"environments.dev": {
+					"type": "string",
+					"default": "",
+					"description": "Development environment "
+				}
+			}
+		},
+		"chatParticipants": [
+			{
+				"id": "ai-ops",
+				"name": "ai-ops",
+				"description": "Deploy, Status or Scan a workspace",
+				"isSticky": true,
+				"commands": [
+					{
+						"name": "triggerScan",
+						"description": "<branch-name>"
+					}
+				]
+			}
+		],
+		"commands": [
+			{
+				"command": "ai-ops.namesInEditor",
+				"title": "Use ai-ops to deploy, status or scan a workspace"
+			}
+		]
+	},
+	"main": "./out/extension.js",
+	"activationEvents": [
+		"*"
+	],
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"watch": "tsc -watch -p ./"
+	},
+	"devDependencies": {
+		"@types/node": "^20.5.9",
+		"@types/vscode": "1.82.0",
+		"eslint": "^7.22.0",
+		"tslint": "^6.1.3",
+		"typescript": "^4.0.3"
+	},
+	"dependencies": {
+		"axios": "^1.6.8",
+		"dotenv": "^16.4.5",
+		"fs": "^0.0.1-security",
+		"openai": "^4.31.0",
+		"path": "^0.12.7"
+	}
+}
