@@ -29,7 +29,17 @@
 				"environments.dev": {
 					"type": "string",
 					"default": "",
-					"description": "Development environment "
+					"description": "Development environment deploy location"
+				},
+				"environments.branch": {
+					"type": "string",
+					"default": "main",
+					"description": "Branch Name "
+				},
+				"environments.repo": {
+					"type": "string",
+					"default": "https://github.com/octodemo/universe-recap/",
+					"description": "Repo Name "
 				}
 			}
 		},
@@ -51,6 +61,10 @@
 					{
 						"name": "scan",
 						"description": "<branch-name> <environment>"
+					},
+					{
+						"name": "orderFreePizzaToDesk",
+						"description": "<preferred toppings>"
 					}
 				]
 			}

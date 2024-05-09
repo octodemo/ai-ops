@@ -27,18 +27,28 @@ export function activate(context: vscode.ExtensionContext) {
 
 		if (request.command == 'scan') {
 			console.log('Running SAST Scan');
-
-			// const config = vscode.workspace.getConfiguration('openai');
-			// const openAIAPIKey = config.get('openAIAPIKey') as string ?? '';
-			// const openai = new OpenAI({
-			// 	apiKey: "openAIAPIKey",
-			// });
 			stream.progress('Kicking off your SAST scan on branch X...');
 			//kickoff SAST scan.
 			// Return status of workflow
 			// update window when complete..
 			return { metadata: { command: 'scan' } };
-		} else {
+		} else if (request.command == 'status') {
+			console.log('Getting status of workflow');
+			stream.progress('Getting status of workflow...');
+			// Return status of workflow
+			return { metadata: { command: 'status' } };
+		} else if (request.command == 'deploy') {
+			console.log('Deploying branch');
+			stream.progress('Deploying branch...');
+			// Return status of workflow
+			return { metadata: { command: 'deploy' } };
+		} else if (request.command == 'orderFreePizzaToDesk') {
+			console.log('Ordering free pizza to desk');
+			stream.progress('Nice try...');
+			// Return status of workflow
+			return { metadata: { command: 'orderFreePizzaToDesk' } };
+		}
+		else {
 			const messages = [
 				new vscode.LanguageModelChatSystemMessage(
 					'Your AIOps assistant can Deploy a branch, Get the status of a workflow or perform a SAST Scan! '
