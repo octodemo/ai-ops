@@ -6,15 +6,15 @@ import * as vscode from 'vscode';
 // Load environment variables from .env file
 dotenv.config();
 
-const PARTICIPANT_ID = 'i2c';
+const PARTICIPANT_ID = 'ai-ops';
 
-interface I2ChatResult extends vscode.ChatResult {
+interface AIOpsChatResult extends vscode.ChatResult {
 	metadata: {
 		command: string;
 	};
 }
 
-const LANGUAGE_MODEL_ID = 'copilot-gpt-3.5-turbo'; // Use faster model. Alternative is 'copilot-gpt-4', which is slower but more powerful
+const LANGUAGE_MODEL_ID = 'copilot-gpt-3.5-turbo';
 
 export function activate(context: vscode.ExtensionContext) {
 	
@@ -23,75 +23,25 @@ export function activate(context: vscode.ExtensionContext) {
 		context: vscode.ChatContext,
 		stream: vscode.ChatResponseStream,
 		token: vscode.CancellationToken
-	): Promise<I2ChatResult> => {
+	): Promise<AIOpsChatResult> => {
 
-		if (request.command == 'convertFile') {
-			console.log('Converting the file to code');
+		if (request.command == 'scan') {
+			console.log('Running SAST Scan');
 
-			const config = vscode.workspace.getConfiguration('openai');
-			const openAIAPIKey = config.get('openAIAPIKey') as string ?? '';
-			const openai = new OpenAI({
-				apiKey: "openAIAPIKey",
-			});
-
-
-			stream.progress('Converting your design image to code! Be right back...');
-			let language: string | undefined;
-
-			const parts = request.prompt.split(' ');
-			const filePath = parts[0];
-			
-			if (parts[1]) {
-				language = parts[1];
-			} else if (vscode.window.activeTextEditor) {
-				language = vscode.window.activeTextEditor.document.languageId;
-			} else if (vscode.workspace.textDocuments.length > 0){
-				language = vscode.workspace.textDocuments[0].languageId;
-			} else {
-				language = 'HTML, CSS, JS. Ask user to specify the language they want to convert the image to.';
-			}
-
-			const workspaceRoot = vscode.workspace.workspaceFolders
-				? vscode.workspace.workspaceFolders[0].uri.fsPath
-				: '';
-			const fullPath = path.join(workspaceRoot, filePath);
-			// Read the file contents as a buffer
-			const fileBuffer = fs.readFileSync(fullPath);
-
-			// Encode file to base64
-			const fileBase64 = fileBuffer.toString('base64');
-			const response = await openai.chat.completions.create({
-				model: 'gpt-4-vision-preview',
-				stream: true,
-				messages: [
-					{
-						role: 'user',
-						content: [
-							{
-								type: 'text',
-								text: 'Give me code to succinctly implement this image in ' + language,
-							},
-							{
-								type: 'image_url',
-								image_url: {
-									url: 'data:image/jpeg;base64,' + fileBase64,
-								},
-							},
-						],
-					},
-				],
-			});
-			let codeResp = '';
-			for await (const chunk of response) {
-				codeResp += chunk.choices[0]?.delta?.content || '';
-				stream.markdown(chunk.choices[0]?.delta?.content || '');
-			}
-
-			return { metadata: { command: 'convertFile' } };
+			// const config = vscode.workspace.getConfiguration('openai');
+			// const openAIAPIKey = config.get('openAIAPIKey') as string ?? '';
+			// const openai = new OpenAI({
+			// 	apiKey: "openAIAPIKey",
+			// });
+			stream.progress('Kicking off your SAST scan on branch X...');
+			//kickoff SAST scan.
+			// Return status of workflow
+			// update window when complete..
+			return { metadata: { command: 'scan' } };
 		} else {
 			const messages = [
 				new vscode.LanguageModelChatSystemMessage(
-					'You are i2c Developer! You convert any image to code. Just provide the image path and I will convert it to code for you.'
+					'Your AIOps assistant can Deploy a branch, Get the status of a workflow or perform a SAST Scan! '
 				),
 				new vscode.LanguageModelChatUserMessage(request.prompt),
 			];
@@ -118,14 +68,14 @@ export function activate(context: vscode.ExtensionContext) {
 	participant.iconPath = vscode.Uri.joinPath(context.extensionUri, 'deere.jpeg');
 	participant.followupProvider = {
 		provideFollowups(
-			result: I2ChatResult,
+			result: AIOpsChatResult,
 			context: vscode.ChatContext,
 			token: vscode.CancellationToken
 		) {
 			return [
 				{
-					prompt: 'Convert an image to code',
-					label: vscode.l10n.t('How convert image to code'),
+					prompt: 'Use AIOps to perform operations on your workspace.',
+					label: vscode.l10n.t('Deploy, Status, Scan'),
 					command: 'explain',
 				} satisfies vscode.ChatFollowup,
 			];
