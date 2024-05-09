@@ -17,6 +17,12 @@ interface AIOpsChatResult extends vscode.ChatResult {
 const LANGUAGE_MODEL_ID = 'copilot-gpt-3.5-turbo';
 
 export function activate(context: vscode.ExtensionContext) {
+
+	//for status button to open browser.
+	context.subscriptions.push(vscode.commands.registerCommand('extension.openUrl', async (url: string) => {
+		vscode.env.openExternal(vscode.Uri.parse(url));
+	}));
+
 	
 	const handler: vscode.ChatRequestHandler = async (
 		request: vscode.ChatRequest,
@@ -43,26 +49,48 @@ export function activate(context: vscode.ExtensionContext) {
 			return { metadata: { command: 'scan' } };
 		} else if (request.command == 'status') {
 			console.log('Getting status of workflow');
-
-			
+			stream.progress('Getting status of workflow...');
+						
 			const parts = request.prompt.split(' ');
 			const workflowFileName = parts[0];
-			octokit.actions
-			.listWorkflowRunsForRepo({
+
+			async function getWorkflowStatus() {
+			try {
+				const { data } = await octokit.actions.listWorkflowRunsForRepo({
 				owner: GHOrg,
 				repo: GHRepo,
 				workflow_id: workflowFileName
-			})
-			.then(({ data }: { data: any }) => {
-				console.log(data);
-			})
-			.catch((err: any) => {
-				console.error(err);
-			});
+				});
 
+				stream.progress('Status of ' + workflowFileName + ' retrieved...');
+
+				const status = `Workflow - **${data.workflow_runs[0].name}**\n\nStatus - _${data.workflow_runs[0].status}_`;
+				console.log(status);
+
+				// Set a 3-second timeout before pushing status to chat
+				await new Promise(resolve => setTimeout(resolve, 3000));
+
+				//push status to chat;
+				stream.markdown(status);
+				// stream button that directs to workflow run
+
+				const command: vscode.Command = {
+					command: 'extension.openUrl',
+					title: 'View Workflow Run',
+					arguments: [data.workflow_runs[0].html_url]
+				  };
 			
-			stream.progress('Getting status of workflow...');
-			// Return status of workflow
+				stream.button(command);
+
+				return { metadata: { command: 'status' } };
+			} catch (err) {
+				console.error(err);
+			}
+			}
+
+			// Await the getWorkflowStatus function
+			await getWorkflowStatus();
+
 			return { metadata: { command: 'status' } };
 		} else if (request.command == 'deploy') {
 			console.log('Deploying branch');
