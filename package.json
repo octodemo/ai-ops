@@ -41,8 +41,16 @@
 				"isSticky": true,
 				"commands": [
 					{
-						"name": "triggerScan",
-						"description": "<branch-name>"
+						"name": "deploy",
+						"description": "<branch-name> <environment>"
+					},
+					{
+						"name": "status",
+						"description": "<workflow name or runID>"
+					},
+					{
+						"name": "scan",
+						"description": "<branch-name> <environment>"
 					}
 				]
 			}
