@@ -40,6 +40,16 @@
 					"type": "string",
 					"default": "https://github.com/octodemo/universe-recap/",
 					"description": "Repo Name "
+				},
+				"environments.token": {
+					"type": "string",
+					"default": "null",
+					"description": "User PAT"
+				},
+				"environments.org": {
+					"type": "string",
+					"default": "octodemo",
+					"description": "Org Name "
 				}
 			}
 		},
@@ -56,7 +66,7 @@
 					},
 					{
 						"name": "status",
-						"description": "<workflow name or runID>"
+						"description": "<workflow-file-name>"
 					},
 					{
 						"name": "scan",
@@ -93,10 +103,10 @@
 		"typescript": "^4.0.3"
 	},
 	"dependencies": {
+		"@octokit/rest": "^20.1.1",
 		"axios": "^1.6.8",
 		"dotenv": "^16.4.5",
 		"fs": "^0.0.1-security",
-		"openai": "^4.31.0",
 		"path": "^0.12.7"
 	}
 }

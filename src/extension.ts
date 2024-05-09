@@ -1,6 +1,6 @@
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';
-import OpenAI from 'openai';
+import { Octokit } from "@octokit/rest";
 import * as path from 'path';
 import * as vscode from 'vscode';
 // Load environment variables from .env file
@@ -17,6 +17,12 @@ interface AIOpsChatResult extends vscode.ChatResult {
 const LANGUAGE_MODEL_ID = 'copilot-gpt-3.5-turbo';
 
 export function activate(context: vscode.ExtensionContext) {
+
+	//for status button to open browser.
+	context.subscriptions.push(vscode.commands.registerCommand('extension.openUrl', async (url: string) => {
+		vscode.env.openExternal(vscode.Uri.parse(url));
+	}));
+
 	
 	const handler: vscode.ChatRequestHandler = async (
 		request: vscode.ChatRequest,
@@ -25,8 +31,17 @@ export function activate(context: vscode.ExtensionContext) {
 		token: vscode.CancellationToken
 	): Promise<AIOpsChatResult> => {
 
+		const envs = vscode.workspace.getConfiguration('environments');
+		const GHAPIKey = envs.get('token') as string ?? '';
+		const octokit = new Octokit({
+			auth: GHAPIKey,
+		  });
+		const GHRepo = envs.get('repo') as string ?? '';
+		const GHOrg = envs.get('org') as string ?? '';
+
 		if (request.command == 'scan') {
 			console.log('Running SAST Scan');
+			console.log("STREAM", stream);
 			stream.progress('Kicking off your SAST scan on branch X...');
 			//kickoff SAST scan.
 			// Return status of workflow
@@ -34,11 +49,48 @@ export function activate(context: vscode.ExtensionContext) {
 			return { metadata: { command: 'scan' } };
 		} else if (request.command == 'status') {
 			console.log('Getting status of workflow');
-
-
-
 			stream.progress('Getting status of workflow...');
-			// Return status of workflow
+						
+			const parts = request.prompt.split(' ');
+			const workflowFileName = parts[0];
+
+			async function getWorkflowStatus() {
+			try {
+				const { data } = await octokit.actions.listWorkflowRunsForRepo({
+				owner: GHOrg,
+				repo: GHRepo,
+				workflow_id: workflowFileName
+				});
+
+				stream.progress('Status of ' + workflowFileName + ' retrieved...');
+
+				const status = `Workflow - **${data.workflow_runs[0].name}**\n\nStatus - _${data.workflow_runs[0].status}_`;
+				console.log(status);
+
+				// Set a 3-second timeout before pushing status to chat
+				await new Promise(resolve => setTimeout(resolve, 3000));
+
+				//push status to chat;
+				stream.markdown(status);
+				// stream button that directs to workflow run
+
+				const command: vscode.Command = {
+					command: 'extension.openUrl',
+					title: 'View Workflow Run',
+					arguments: [data.workflow_runs[0].html_url]
+				  };
+			
+				stream.button(command);
+
+				return { metadata: { command: 'status' } };
+			} catch (err) {
+				console.error(err);
+			}
+			}
+
+			// Await the getWorkflowStatus function
+			await getWorkflowStatus();
+
 			return { metadata: { command: 'status' } };
 		} else if (request.command == 'deploy') {
 			console.log('Deploying branch');
