@@ -1,4 +1,7 @@
 # Copilot Visual Studio Code extension for AI Ops
+
+Must run from VSC Insiders.
+
 Invoke like:
 
 @ai-ops /deploy <branch-to-deploy> <repo-environment-for-secrets>
