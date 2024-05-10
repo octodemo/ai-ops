@@ -59,14 +59,19 @@ export function activate(context: vscode.ExtensionContext) {
 				const { data } = await octokit.actions.listWorkflowRunsForRepo({
 				owner: GHOrg,
 				repo: GHRepo,
-				workflow_id: workflowFileName
+				workflow_id: "deploy-azure.yml" // hard coded value for easy demo.
 				});
 
 				stream.progress('Status of ' + workflowFileName + ' retrieved...');
 
-				const status = `Workflow - **${data.workflow_runs[0].name}**\n\nStatus - _${data.workflow_runs[0].status}_`;
-				console.log(status);
+				// if data.workflow_runs[0].conclusion is null, then set it to equal 'In Progress'
+				if (data.workflow_runs[0].conclusion === null) {
+					data.workflow_runs[0].conclusion = 'In Progress';
+				}
 
+				const status = `**${data.workflow_runs[0].display_title}**\n\nStatus - _${data.workflow_runs[0].conclusion}_`;
+				console.log(status);
+				//conclusion
 				// Set a 3-second timeout before pushing status to chat
 				await new Promise(resolve => setTimeout(resolve, 3000));
 
@@ -95,6 +100,28 @@ export function activate(context: vscode.ExtensionContext) {
 		} else if (request.command == 'deploy') {
 			console.log('Deploying branch');
 			stream.progress('Deploying branch...');
+
+			const parts = request.prompt.split(' ');
+			const branchName = parts[0];
+			//@ai-ops /deploy azure-deploy ai-ops-development
+			// remove /n if it exists on parts[1]
+			if (parts[1].includes('\n')) {
+				parts[1] = parts[1].replace('\n', '');
+			}
+			const environment = parts[1];
+
+			const { data } = await octokit.actions.createWorkflowDispatch({
+				owner: 'octodemo',
+				repo: 'universe-recap',
+				workflow_id: 'deploy-azure.yml',
+				ref: branchName,
+				inputs: {
+					environment: environment, // if unauthorized check SCM basic auth config in Azure slot settings.
+					branch: branchName
+				}
+			});
+
+
 			// Return status of workflow
 			return { metadata: { command: 'deploy' } };
 		} else if (request.command == 'orderFreePizzaToDesk') {
@@ -130,7 +157,7 @@ export function activate(context: vscode.ExtensionContext) {
 	// when you type `@`, and can contribute sub-commands in the chat input
 	// that appear when you type `/`.
 	const participant = vscode.chat.createChatParticipant(PARTICIPANT_ID, handler);
-	participant.iconPath = vscode.Uri.joinPath(context.extensionUri, 'icon.jpeg');
+	participant.iconPath = vscode.Uri.joinPath(context.extensionUri, 'logo.jpeg');
 	participant.followupProvider = {
 		provideFollowups(
 			result: AIOpsChatResult,
