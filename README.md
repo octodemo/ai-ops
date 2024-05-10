@@ -4,11 +4,14 @@ Must run from VSC Insiders.
 
 Invoke like:
 
-@ai-ops /deploy <branch-to-deploy> <repo-environment-for-secrets>
-	Gets Branch name and environment to run workflow in and triggers Actions workflow.
+Deploys specified branch to repo environment in actions workflow
 
-@ai-ops /status <workflowfilename> (ex.standards_enforcement.yml)
-	Gets pipeline status
+  	@ai-ops /deploy (branch-to-deploy>) (repo-environment-for-secrets)
+
+Gets most recent actions workflow status
+	
+ 	@ai-ops /status (workflowfilename) (ex.standards_enforcement.yml)
+	
 
 @aiops /scan dev
 	Not implemented yet.
